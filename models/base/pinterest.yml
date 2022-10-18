@@ -1,0 +1,39 @@
+version: 2
+
+sources:
+  - name: pinterest_raw
+    schema: pinterest_raw
+    tables:
+      - name: advertisers
+        identifier: advertiser_history   
+      - name: campaigns
+        identifier: campaign_history   
+      - name: ad_groups
+        identifier: ad_group_history     
+      - name: ad_group_report
+      
+models:
+  - name: pinterest_advertisers
+    columns:
+      - name: advertiser_id
+        tests: 
+          - unique
+          - not_null
+  - name: pinterest_campaigns
+    columns:
+      - name: campaign_id
+        tests: 
+          - unique
+          - not_null
+  - name: pinterest_ad_groups 
+    columns:
+      - name: ad_group_id
+        tests: 
+          - unique
+          - not_null
+  - name: _stg_pinterest_ad_groups_insights 
+    columns:
+      - name: unique_key
+        tests: 
+          - unique
+          - not_null
