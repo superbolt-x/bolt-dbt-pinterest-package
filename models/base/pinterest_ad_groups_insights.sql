@@ -56,25 +56,7 @@ WITH
     {%- if var('currency') != 'USD' %}
     LEFT JOIN currency USING(date)
     {%- endif %}
-    ),
-
-    adgroups AS 
-    (SELECT ad_group_id, ad_group_name, ad_group_status
-    FROM {{ ref('pinterest_ad_groups') }}
-    ),
-
-    campaigns AS 
-    (SELECT campaign_id, campaign_name, campaign_status
-    FROM {{ ref('pinterest_campaigns') }}
-    ),
-
-    advertisers AS 
-    (SELECT advertiser_id, advertiser_name
-    FROM {{ ref('pinterest_advertisers') }}
     )
 
 SELECT *
 FROM insights 
-LEFT JOIN adgroups USING(ad_group_id)
-LEFT JOIN campaigns USING(campaign_id)
-LEFT JOIN advertisers USING(advertiser_id)
