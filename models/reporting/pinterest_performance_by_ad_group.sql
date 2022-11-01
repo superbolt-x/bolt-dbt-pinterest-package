@@ -47,8 +47,8 @@ WITH
 
 
 SELECT *,
-    {{ get_pinterest_default_campaign_types('campaign_name')}}
-
+    {{ get_pinterest_default_campaign_types('campaign_name')}},
+    {{ get_pinterest_scoring_objects() }}
 FROM 
     ({% for date_granularity in date_granularity_list -%}
     SELECT *
