@@ -4,6 +4,7 @@
 ) }}
 
 {%- set schema_name, table_name = 'pinterest_raw', 'ad_group_report' -%}
+{% set raw_tables = dbt_utils.get_relations_by_pattern('pinterest_raw%', 'ad_group_report') %}
 
 {%- set exclude_fields = [
     "campaign_status",
@@ -194,20 +195,23 @@
                     |reject("in",exclude_fields)
                     -%}  
 
-WITH insights AS 
+WITH raw_data AS 
+    ({{ dbt_utils.union_relations(relations = raw_tables) }}),
+
+    staging AS 
     (SELECT 
         {%- for field in fields if ("cost_per" not in field and "_roas" not in field) %}
         {{ get_pinterest_clean_field(table_name, field) }}
         {%- if not loop.last %},{%- endif %}
         {%- endfor %}
-    FROM {{ source(schema_name, table_name) }}
+    FROM raw_data
     )
 
 SELECT 
     *,
     MAX(_fivetran_synced) over () as last_updated,
     ad_group_id||'_'||date as unique_key
-FROM insights
+FROM staging
 {% if is_incremental() -%}
 
   -- this filter will only be applied on an incremental run

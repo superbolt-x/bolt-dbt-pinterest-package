@@ -7,8 +7,12 @@
     "updated_time"
 ] -%}
 {%- set schema_name, table_name = 'pinterest_raw', 'advertisers' -%}
+{% set raw_tables = dbt_utils.get_relations_by_pattern('pinterest_raw%', 'advertiser_history') %}
 
-WITH staging AS 
+WITH raw_data AS 
+    ({{ dbt_utils.union_relations(relations = raw_tables) }}),
+
+    staging AS 
     (SELECT
     
         {% for field in selected_fields -%}
@@ -16,7 +20,7 @@ WITH staging AS
         {% endfor -%}
         MAX(updated_time) OVER (PARTITION BY id) as last_updated_time
 
-    FROM {{ source(schema_name, table_name) }}
+    FROM raw_data
     )
 
 SELECT *
