@@ -5,7 +5,7 @@
     "status",
     "updated_time"
 ] -%}
-{%- set schema_name, table_name = 'pinterest_raw', 'ad_groups' -%}
+{%- set schema_name, table_name = 'pinterest_raw', 'ad_group_history' -%}
 {% set raw_tables = dbt_utils.get_relations_by_pattern('pinterest_raw%', 'ad_group_history') %}
 
 WITH raw_data AS 

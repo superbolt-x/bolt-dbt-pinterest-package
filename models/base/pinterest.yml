@@ -8,8 +8,7 @@ sources:
         identifier: advertiser_history   
       - name: campaigns
         identifier: campaign_history   
-      - name: ad_groups
-        identifier: ad_group_history     
+      - name: ad_group_history     
       - name: ad_group_report
       
 models:
