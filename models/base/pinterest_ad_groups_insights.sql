@@ -10,18 +10,10 @@
     "campaign_name",
     "total_impression_frequency",
     "total_impression_user",
-    "total_click_checkout",
-    "total_click_checkout_quantity",
-    "total_click_checkout_value_in_micro_dollar",
-    "total_view_checkout",
-    "total_view_checkout_quantity",
-    "total_view_checkout_value_in_micro_dollar",
     "total_click_custom",
     "total_click_custom_value_in_micro_dollar",
     "total_view_custom",
-    "total_view_custom_value_in_micro_dollar",
-    "total_click_lead",
-    "total_view_lead"
+    "total_view_custom_value_in_micro_dollar"
 ]
 -%}
 
