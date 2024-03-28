@@ -3,7 +3,6 @@
     "name",
     "currency",
     "country",
-    "status",
     "updated_time"
 ] -%}
 {%- set schema_name, table_name = 'pinterest_raw', 'advertisers' -%}
