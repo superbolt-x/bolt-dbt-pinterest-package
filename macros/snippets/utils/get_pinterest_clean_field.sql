@@ -35,6 +35,10 @@
     {%- elif table_name == 'ad_group_history' -%}
 
         {{column_name}} as ad_group_{{column_name}}
+    
+    {%- elif table_name == 'pin_promotion_history' -%}
+
+        {{column_name}} as pin_promotion_{{column_name}}
 
 
     {#- /*  End  */ -#}
