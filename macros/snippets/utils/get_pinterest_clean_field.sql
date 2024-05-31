@@ -19,6 +19,18 @@
         
         {%- endif -%}
 
+    {%- elif table_name == 'pin_promotion_report' -%}
+        {%- if 'in_micro_dollar' in column_name -%}
+            {{ column_name }}::float/1000000 as {{ column_name.split("_in_micro_dollar")[0] }}
+            
+        {%- elif column_name == 'date' -%}
+            {{ column_name }}::date as date
+
+        {%- else -%}
+        {{column_name}}
+        
+        {%- endif -%}
+
     {%- elif table_name == 'campaigns' -%}
         {%- if column_name == 'daily_spend_cap' -%}
             {{column_name}}/1000000 as campaign_daily_spend_cap
