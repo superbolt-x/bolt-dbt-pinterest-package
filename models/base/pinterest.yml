@@ -10,6 +10,8 @@ sources:
         identifier: campaign_history   
       - name: ad_group_history     
       - name: ad_group_report
+      - name: pin_promotion_history     
+      - name: pin_promotion_report
       
 models:
   - name: pinterest_advertisers
@@ -30,7 +32,19 @@ models:
         tests: 
           - unique
           - not_null
+  - name: pinterest_pins
+    columns:
+      - name: pin_id
+        tests: 
+          - unique
+          - not_null
   - name: _stg_pinterest_ad_groups_insights 
+    columns:
+      - name: unique_key
+        tests: 
+          - unique
+          - not_null
+  - name: _stg_pinterest_pins_insights 
     columns:
       - name: unique_key
         tests: 
