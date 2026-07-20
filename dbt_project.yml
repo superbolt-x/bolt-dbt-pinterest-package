@@ -34,7 +34,7 @@ models:
   bolt_dbt_pinterest_package:
     base:
       +schema: pinterest_base
-      +materialized: table
+      +materialized: ephemeral
 
     reporting:
       +schema: reporting
