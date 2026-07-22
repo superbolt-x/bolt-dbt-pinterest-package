@@ -9,34 +9,68 @@
 {#-
     Pin performance, all date granularities in one table.
 
-    Reads the day-grain incremental feeder (pinterest_performance_by_pin_daily),
-    rolls up day/week/month/quarter/year, and joins pin / ad group / campaign /
-    advertiser metadata built inline from the raw history tables. This keeps the
-    pinterest_pins_insights / pinterest_pins / pinterest_ad_groups /
-    pinterest_campaigns / pinterest_advertisers models out of this model's DAG so
-    a selective run stays slim (mirrors the Facebook performance_by_ad_daily +
-    performance_by_ad pattern).
+    Reads the day-grain incremental staging model (_stg_pinterest_pins_insights)
+    directly, applies currency conversion, rolls up day/week/month/quarter/year,
+    and joins pin / ad group / campaign / advertiser metadata built inline from the
+    raw history tables. Keeping currency + rollup + metadata all in this one model
+    means a selective run only materializes _stg_pinterest_pins_insights + this
+    model (mirrors the Facebook day-grain + rollup pattern; the _stg model plays
+    the day-grain feeder role).
 -#}
 
+{%- set currency_fields = [
+    "spend"
+]
+-%}
+
 {%- set date_granularity_list = ['day','week','month','quarter','year'] -%}
-{%- set exclude_fields = ['date','last_updated','unique_key'] -%}
+{#- exclude the reporting keys plus the text / unwanted fields the old
+    pinterest_pins_insights view dropped, so they are not summed as measures -#}
+{%- set exclude_fields = [
+    'date','last_updated','unique_key',
+    '_fivetran_synced',
+    'total_impression_frequency','total_impression_user',
+    'total_click_custom','total_click_custom_value_in_micro_dollar',
+    'total_view_custom','total_view_custom_value_in_micro_dollar'
+] -%}
 {%- set dimensions = ['advertiser_id','campaign_id','ad_group_id','pin_promotion_id'] -%}
-{%- set measures = adapter.get_columns_in_relation(ref('pinterest_performance_by_pin_daily'))
+{%- set stg_fields = adapter.get_columns_in_relation(ref('_stg_pinterest_pins_insights'))
                     |map(attribute="name")
-                    |reject("in",exclude_fields)
-                    |reject("in",dimensions)
                     |list
                     -%}
+{%- set measures = stg_fields|reject("in",exclude_fields)|reject("in",dimensions)|list -%}
 
 WITH
+    {% if var('currency') != 'USD' -%}
+    currency AS
+    (SELECT DISTINCT date, "{{ var('currency') }}" as raw_rate,
+        LAG(raw_rate) ignore nulls over (order by date) as exchange_rate
+    FROM utilities.dates
+    LEFT JOIN utilities.currency USING(date)
+    WHERE date <= current_date),
+    {%- endif -%}
+
+    {%- set exchange_rate = 1 if var('currency') == 'USD' else 'exchange_rate' %}
+
     insights AS
-    (SELECT *
-    FROM {{ ref('pinterest_performance_by_pin_daily') }}
+    (SELECT
+        {%- for field in stg_fields %}
+        {%- if field in currency_fields or '_value' in field %}
+        "{{ field }}"::float/{{ exchange_rate }} as "{{ field }}"
+        {%- else %}
+        "{{ field }}"
+        {%- endif -%}
+        {%- if not loop.last %},{%- endif %}
+        {%- endfor %}
+    FROM {{ ref('_stg_pinterest_pins_insights') }}
+    {%- if var('currency') != 'USD' %}
+    LEFT JOIN currency USING(date)
+    {%- endif %}
     {% if is_incremental() -%}
     -- Reprocess whole periods from the start of the year containing (max date - 30d)
     -- so the week/month/quarter/year roll-ups stay complete; older data is stable.
     -- Run --full-refresh periodically to refresh object names on historical rows.
-    WHERE date >= date_trunc('year', (select dateadd(day,-30,max(date)) from {{ ref('pinterest_performance_by_pin_daily') }}))::date
+    WHERE date >= date_trunc('year', (select dateadd(day,-30,max(date)) from {{ ref('_stg_pinterest_pins_insights') }}))::date
     {%- endif %}
     ),
 
