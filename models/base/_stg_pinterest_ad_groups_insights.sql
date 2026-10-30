@@ -218,3 +218,5 @@ FROM staging
 where date >= (select max(date)-30 from {{ this }})
 
 {% endif %}
+-- the same ad group/day can arrive from more than one raw schema (pinterest_raw%): keep the latest sync
+QUALIFY ROW_NUMBER() OVER (PARTITION BY ad_group_id, date ORDER BY _fivetran_synced DESC) = 1
