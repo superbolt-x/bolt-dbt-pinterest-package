@@ -196,7 +196,11 @@
                     -%}  
 
 WITH raw_data AS 
-    ({{ dbt_utils.union_relations(relations = raw_tables) }}),
+    -- the same ad group/day can arrive from more than one raw schema (pinterest_raw%): keep the latest sync
+    (SELECT * FROM 
+        (SELECT *, ROW_NUMBER() OVER (PARTITION BY ad_group_id, date ORDER BY _fivetran_synced DESC) as _rn
+        FROM ({{ dbt_utils.union_relations(relations = raw_tables) }}))
+    WHERE _rn = 1),
 
     staging AS 
     (SELECT 
@@ -218,5 +222,3 @@ FROM staging
 where date >= (select max(date)-30 from {{ this }})
 
 {% endif %}
--- the same ad group/day can arrive from more than one raw schema (pinterest_raw%): keep the latest sync
-QUALIFY ROW_NUMBER() OVER (PARTITION BY ad_group_id, date ORDER BY _fivetran_synced DESC) = 1
