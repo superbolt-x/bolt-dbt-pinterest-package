@@ -136,19 +136,22 @@ WITH
     ),
 
     adgroups AS
-    (SELECT ad_group_id, ad_group_name, ad_group_status
+    (SELECT ad_group_id, MAX(ad_group_name) as ad_group_name, MAX(ad_group_status) as ad_group_status
     FROM ad_groups_staging
-    WHERE updated_time = last_updated_time),
+    WHERE updated_time = last_updated_time
+    GROUP BY 1),
 
     campaigns AS
-    (SELECT campaign_id, campaign_name, campaign_status
+    (SELECT campaign_id, MAX(campaign_name) as campaign_name, MAX(campaign_status) as campaign_status
     FROM campaigns_staging
-    WHERE updated_time = last_updated_time),
+    WHERE updated_time = last_updated_time
+    GROUP BY 1),
 
     advertisers AS
-    (SELECT advertiser_id, advertiser_name
+    (SELECT advertiser_id, MAX(advertiser_name) as advertiser_name
     FROM advertisers_staging
-    WHERE updated_time = last_updated_time)
+    WHERE updated_time = last_updated_time
+    GROUP BY 1)
 
 SELECT *,
     {{ get_pinterest_default_campaign_types('campaign_name')}},
